@@ -104,6 +104,9 @@ def Juego():
         
         print(f"| {jugador.name}: {jugador.vida}HP")
         print(f"| {bot.name}: {bot.vida}HP")
-
+    if jugador.vida <= 0:
+        print(colorama.Fore.LIGHTMAGENTA_EX + "GAME OVER")
+    else:
+        print(colorama.Fore.LIGHTGREEN_EX + "VICTORY!!!!")
 
 Juego()
