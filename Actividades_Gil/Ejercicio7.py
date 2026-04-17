@@ -2,10 +2,10 @@ class Cuenta():
 
     def __init__(self, titular, cantidad):
         self.titular = titular
-        self._cantidad = cantidad
+        self.cantidad = cantidad
     
     def MostrarDatos(self):
-        print(f"el titular '{self.titular}' tiene ${self._cantidad}")
+        print(f"el titular '{self.titular}' tiene ${self.cantidad}")
 
 class CajaAhorro(Cuenta):
 
@@ -25,7 +25,10 @@ class PlazoFijo(Cuenta):
     
     def MostrarDatos(self):
         super().MostrarDatos()
-        print(f"con un plazo fijo de {self.plazo} meses con un interes del {self.interes}%")
+        print(f"con un plazo fijo de {self.plazo} meses con un interes del {self.interes}% equivalente a ${self.ImporteInteres()}")
 
 cuenta_ahorro = CajaAhorro("pepito", 9000)
+cuenta_ahorro.MostrarDatos()
+print("-"*20)
 plazo_fijo = PlazoFijo("juancito", 2000, 12, 5)
+plazo_fijo.MostrarDatos()
