@@ -11,13 +11,14 @@ class Auto():
         self.limite_aceleracion = 3
         self.limite_velocidad = 10
         self.velocidad = 1
-        self.turno = 0
+        self.turno = 1
         self.carril = carril
         self.posicion = 0
         self.ubicacion = 0
         self.distancia_meta = 100
         self.rebufo = False
         self.auto_rebufo = None
+        self.carril_rebufo = None
         self.choque = False
     
     def __eq__(self, auto):
@@ -36,13 +37,14 @@ class Auto():
             return False 
     
     def Datos(self):
-        return (self.carril, self.ubicacion)
+        return (self.carril, self.ubicacion, self.velocidad)
 
     def Acelerar(self):
         if self.choque == True:
             self.aceleracion = 1
-            self.velocidad -= self.limite_velocidad
+            self.velocidad = 0
             self.choque = False
+
         elif self.velocidad < self.limite_velocidad:
             self.velocidad += self.aceleracion
             if self.aceleracion < self.limite_aceleracion:
@@ -52,17 +54,25 @@ class Auto():
     
     def Avanzar(self):
         if self.rebufo:
-            if self.velocidad + 2 <= self.limite_velocidad:
-                self.velocidad += 2
-            else:
-                self.velocidad = self.limite_velocidad
+            self.limite_aceleracion += 2
+        else:
+            self.limite_aceleracion = 3
+
         if self.auto_rebufo:
-            if self.ubicacion + self.velocidad > self.auto_rebufo.ubicacion + self.auto_rebufo.velocidad:
-                self.ubicacion = self.auto_rebufo.ubicacion + self.auto_rebufo.velocidad - 1
+            if isinstance(self.auto_rebufo, Sistema):
+                if self.ubicacion + self.velocidad >= self.auto_rebufo.ubicacion + self.auto_rebufo.velocidad:
+                    print("no puede adelantar al auto en rebufo")
+                    self.ubicacion = self.auto_rebufo.ubicacion + self.auto_rebufo.velocidad - 2
+                elif self.ubicacion + self.velocidad >= self.auto_rebufo.ubicacion:
+                    print("no puede adelantar al auto en rebufo")
+                    self.ubicacion = self.auto_rebufo.ubicacion + self.auto_rebufo.velocidad - 2
+                else:
+                    self.ubicacion += self.velocidad
             else:
                 self.ubicacion += self.velocidad
         else:
             self.ubicacion += self.velocidad
+        
         self.turno += 1
         if self.turno % 2 == 0:
             self.Acelerar()
@@ -80,8 +90,6 @@ class Auto():
             if self.velocidad > self.limite_velocidad:
                 self.velocidad = self.limite_velocidad
             print("limite de velocidad reducido")
-            self.aceleracion -= 1
-            print("aceleracion reducida")
     
     def Verificar_Meta(self):
         if self.ubicacion >= self.distancia_meta:
@@ -94,15 +102,18 @@ class Auto():
         for auto in autos:
             if self.__lt__(auto):
                 coincidencia = True
-                if self.rebufo == False:
+                if self.rebufo == False and self.carril_rebufo != auto.carril:
                     print("te metiste en rebufo de", auto.Datos())
+                    self.carril_rebufo = auto.carril
                     self.auto_rebufo = auto
                     self.Rebufo(True)
+        
         if coincidencia == False:
             if self.rebufo == True:
                 self.auto_rebufo = None
                 print("saliste del rebufo")
                 self.Rebufo(False)
+                self.carril_rebufo = None
     
 class Sistema(Auto):
     def __init__(self, carril):
@@ -178,10 +189,12 @@ class Jugador(Auto):
         if carril >= 0 and carril <= len(autos):
             for auto in autos:
                 if self == auto and auto.carril == carril:
+                    print("no puedes cambiar de carril")
                     return False
             self.carril = carril
             return True
         else:
+            print("estas en el limite de carriles, no puedes cambiar")
             return False
 
     def Menu_Eleccion(self, autos):
@@ -202,9 +215,15 @@ class Jugador(Auto):
             print("2. abajo")
             carril = int(input("ingresa el carril: "))
             if carril == 1:
-                self.Cambiar_Carril(self.carril - 1, autos)
+                if self.Cambiar_Carril(self.carril - 1, autos):
+                    pass
+                else:
+                    self.Menu_Eleccion(autos)
             elif carril == 2:
-                self.Cambiar_Carril(self.carril + 1, autos)
+                if self.Cambiar_Carril(self.carril + 1, autos):
+                    pass
+                else:
+                    self.Menu_Eleccion(autos)
             else:
                 print("eleccion invalida")
                 self.Menu_Eleccion()
@@ -258,9 +277,10 @@ class Juego():
             print("-"*20)
             print(f"turno {self.turno}")
             print("-"*20)
-            self.Mostrar_Pista()
             for auto in self.autos:
                 auto.Verificar_Rebufo(self.autos)
+                if isinstance(auto, Jugador):
+                    self.Mostrar_Pista()
                 auto.Decidir(self.autos)
             self.Verificar_Ganador()
             self.turno += 1
