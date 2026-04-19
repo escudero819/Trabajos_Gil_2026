@@ -63,11 +63,11 @@ class Auto():
                 if self.ubicacion + self.velocidad >= self.auto_rebufo.ubicacion + self.auto_rebufo.velocidad:
                     print("no puede adelantar al auto en rebufo")
                     self.ubicacion = self.auto_rebufo.ubicacion + self.auto_rebufo.velocidad - 2
-                elif self.ubicacion + self.velocidad >= self.auto_rebufo.ubicacion:
-                    print("no puede adelantar al auto en rebufo")
-                    self.ubicacion = self.auto_rebufo.ubicacion + self.auto_rebufo.velocidad - 2
                 else:
                     self.ubicacion += self.velocidad
+            elif self.ubicacion + self.velocidad >= self.auto_rebufo.ubicacion:
+                    print("evitas que te adelanten en tu carril")
+                    self.ubicacion = self.auto_rebufo.ubicacion - 2
             else:
                 self.ubicacion += self.velocidad
         else:
