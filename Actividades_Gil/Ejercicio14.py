@@ -34,9 +34,8 @@ def Mostrar_estado_juego(lista_ataque_enemigo, torre):
 
 class Tropa():
 
-    def __init__(self, vida, velocidad, lista_dibujos, danio, bando):
+    def __init__(self, vida, lista_dibujos, danio, bando):
         self.vida = vida
-        self.velocidad = velocidad
         self.lista_dibujos = lista_dibujos
         self.danio = danio
         self.bando = bando
@@ -77,13 +76,13 @@ class Tropa():
 
 class Barbaro(Tropa):
     def __init__(self, bando):
-        super().__init__(2, 1, ["o", "x"], 2, bando)
+        super().__init__(2, ["o", "x"], 2, bando)
     
 
 
 class Arquero():
     def __init__(self, distancia):
-        self.velocidad = 2
+        self.velocidad = 4
         self.distancia = distancia
         self.lista_dibujos = ["<", "@"]
         self.danio = 1
@@ -113,16 +112,18 @@ class Arquero():
                 self.bandera_recarga += 1
                 self.dibujo = self.lista_dibujos[1]
             else:
-                if self.bandera_recarga - self.velocidad <= 0:
+                if self.velocidad - self.bandera_recarga <= 0:
                     self.recargando = False
                     self.bandera_recarga = 0
                     self.dibujo = self.lista_dibujos[0]
+                self.bandera_recarga += 1
 
 class Torre():
     def __init__(self):
         self.vida = 100
         self.defensa = 0
-        self.arqueros = [Arquero(10)]
+        self.distancia_arqueros = 10
+        self.arqueros = [Arquero(self.distancia_arqueros)]
         self.lim_arqueros = 5
         self.coste_defensa = 2
         self.coste_reparacion = 5
@@ -138,7 +139,7 @@ class Torre():
             print("ya tienes el maximo de arqueros")
             return False
         else:
-            self.arqueros.append(Arquero(10))
+            self.arqueros.append(Arquero(self.distancia_arqueros))
             self.monedas -= self.coste_arquero
             return True
     
@@ -171,17 +172,6 @@ class Torre():
         for arquero in self.arqueros:
             arquero.Defender(lista_camino)
 
-
-tropa1 = Barbaro(2)
-tropa2 = Barbaro(2)
-tropa3 = Barbaro(2)
-
-lista_camino = []
-for i in range(1, 21):
-    lista_camino.append("-")
-
-lista = [tropa1, tropa2, tropa3]
-
 class Horda():
     def __init__(self, cantidad, lista_camino, torre, remuneracion):
         self.lista_tropas = []
@@ -193,7 +183,8 @@ class Horda():
 
     def Atacar(self):
         if not isinstance(self.lista_camino[-1], str):
-            self.lista_camino[-1].Atacar(self.torre)
+            if self.lista_camino[-1].vida > 0:
+                self.lista_camino[-1].Atacar(self.torre)
 
     def Avanzar(self):
         print("-"*30)
@@ -249,9 +240,32 @@ class Horda():
         print(f"recibiste {self.remuneracion} monedas")
         print(f"tienes {self.torre.vida} puntos de vida")
         print(f"tienes {self.torre.monedas} monedas")
+
+
+class Partida():
+    def __init__(self):
+        self.torre = Torre()
+        self.cantidad_barbaros = 3
+        self.ronda = 1
+        self.lista_camino = []
+        for i in range(1, 21):
+            self.lista_camino.append("-")
+        
+        print("bienvenido a la frontera Capitan")
+        print("tu encomienda sera defender la torre de los barbaros")
+        print("tendras que mejorar tu defensa, reclutar arqueros y reparar la torre")
+        print("cada ronda vendran mas barbaros pero con ellos vendran sus tesoros")
+        print("si logras sobrevivir a 10 rondas habras ganado")
+        print("si la torre llega a 0 puntos de vida habras perdido")
+        print("")
+        
     
-torre = Torre()
-remuneracion = 5
-horda = Horda(4, lista_camino, torre, remuneracion)
-horda.Iniciar_Horda()
+    def Iniciar_Partida(self):
+        self.horda = Horda(self.cantidad_barbaros, self.lista_camino, self.torre, int(self.ronda * 1.5))
+        self.horda.Iniciar_Horda()
+
+
+
+partida = Partida()
+partida.Iniciar_Partida()
     
