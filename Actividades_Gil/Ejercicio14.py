@@ -122,6 +122,7 @@ class Torre():
     def __init__(self):
         self.vida = 100
         self.defensa = 0
+        self.defensa_max = 0
         self.distancia_arqueros = 10
         self.arqueros = [Arquero(self.distancia_arqueros)]
         self.lim_arqueros = 5
@@ -141,6 +142,7 @@ class Torre():
         else:
             self.arqueros.append(Arquero(self.distancia_arqueros))
             self.monedas -= self.coste_arquero
+            self.coste_arquero += 1
             return True
     
     def Mejorar_Defensa(self):
@@ -149,14 +151,16 @@ class Torre():
             return False
         else:
             self.monedas -= self.coste_defensa
-            self.defensa += 1
+            self.defensa += 4
+            self.coste_defensa += 2
+            print(f"ahora tienes {self.defensa} de defensa")
             return False
     
     def Reparar(self):
         if self.vida == 100:
             print("estas al tope de vida")
             return False
-        elif self.monedas - self.coste_reparacion:
+        elif self.monedas - self.coste_reparacion < 0:
             print("no tienes suficiente dinero")
             return False
         else:
@@ -164,9 +168,14 @@ class Torre():
             self.vida += 20
             if self.vida > 100:
                 self.vida = 100
+            print(f"ahora la torre tiene {self.vida} de vida")
 
     def RecibirGolpe(self, danio):
-        self.vida -= danio - self.defensa
+        if self.defensa:
+            self.defensa -= danio
+        else:
+            self.vida -= danio
+        
 
     def Arqueros_Atacar(self, lista_camino):
         for arquero in self.arqueros:
@@ -180,6 +189,9 @@ class Horda():
         self.torre = torre
         self.lista_camino = lista_camino
         self.remuneracion = remuneracion
+        for arquero in self.torre.arqueros:
+            arquero.recargando = False
+            arquero.dibujo = arquero.lista_dibujos[0]
 
     def Atacar(self):
         if not isinstance(self.lista_camino[-1], str):
@@ -239,7 +251,6 @@ class Horda():
         self.torre.monedas += self.remuneracion
         print(f"recibiste {self.remuneracion} monedas")
         print(f"tienes {self.torre.vida} puntos de vida")
-        print(f"tienes {self.torre.monedas} monedas")
 
 
 class Partida():
@@ -247,6 +258,7 @@ class Partida():
         self.torre = Torre()
         self.cantidad_barbaros = 3
         self.ronda = 1
+        self.recompensa = 2
         self.lista_camino = []
         for i in range(1, 21):
             self.lista_camino.append("-")
@@ -258,11 +270,51 @@ class Partida():
         print("si logras sobrevivir a 10 rondas habras ganado")
         print("si la torre llega a 0 puntos de vida habras perdido")
         print("")
-        
     
+    def Subir_Nivel_Horda(self):
+        if self.ronda % 2 == 0:
+            barbaros = self.cantidad_barbaros // 3
+            if barbaros < 4:
+                barbaros = 4
+            self.cantidad_barbaros += barbaros
+            aumento = self.recompensa // 5
+            if aumento < 3:
+                aumento = 3
+            self.recompensa += aumento
+        self.ronda += 1
+
+    def Menu(self):
+        print(f"tenes {self.torre.monedas} monedas, que haras?")
+        print("1. reclutar 1 arquero mas (max 5) -", self.torre.coste_arquero)
+        print("2. mejorar defensas -", self.torre.coste_defensa)
+        print("3. reparar la Torre (max 20) -", self.torre.coste_reparacion)
+        #print("4. subir de nivel un arquero -", self.torre.coste_arquero_nv2)
+        print("4. avanzar a la siguiente horda")
+        op = int(input("-- "))
+        return op
+
+
+    def Entre_Tiempo(self):
+        eleccion = self.Menu()
+        if eleccion == 1:
+            self.torre.Nuevo_Arquero()
+        if eleccion == 2:
+            self.torre.Mejorar_Defensa()
+        if eleccion == 3:
+            self.torre.Reparar()
+        if eleccion == 4:
+            return
+        self.Entre_Tiempo()
+
+            
+
     def Iniciar_Partida(self):
-        self.horda = Horda(self.cantidad_barbaros, self.lista_camino, self.torre, int(self.ronda * 1.5))
-        self.horda.Iniciar_Horda()
+        while self.torre.vida > 0:
+            self.Entre_Tiempo()
+            print(f"HORDA NUMERO:", self.ronda)
+            self.horda = Horda(self.cantidad_barbaros, self.lista_camino, self.torre, self.recompensa)
+            self.horda.Iniciar_Horda()
+            self.Subir_Nivel_Horda()
 
 
 
