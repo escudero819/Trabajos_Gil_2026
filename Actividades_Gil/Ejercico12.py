@@ -51,7 +51,8 @@ class Inventario():
                 if eleccion == 1:
                     self.Usar(indice)
                 elif eleccion == 2:
-                    self.Descartar(indice)
+                    objeto = self.Descartar(indice)
+                    self.Lista()
                 else:
                     self.Lista()
             else:
@@ -72,7 +73,15 @@ class Inventario():
         else:
             return
 
-prueba = Inventario(10)
+
+class Jugador():
+
+    def __init__(self):
+        self.vida = 100
+        self.sed = 100
+        self.hambre = 100
+
+prueba = Inventario(Jugador(), 10)
 coso = Recursos_no_Usables.Palo()
 print(coso)
 prueba.Guardar(coso)
