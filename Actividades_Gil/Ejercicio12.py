@@ -154,7 +154,7 @@ class Jugador():
         if random.randint(1, 100) <= self.ambiente.prob_tiburon:
             print("un tiburon te ataca")
             self.vida -= 10
-            self.ambiente.prob_tiburon = 0
+            self.ambiente.prob_tiburon = 5
         else:
             self.ambiente.prob_tiburon += self.ambiente.prob_tiburon * 1.5
             if self.ambiente.prob_tiburon > 50:
@@ -175,6 +175,12 @@ class Jugador():
         print("vuelves a la balsa")
 
     def Inspeccionar_Agua(self, lista_objetos_agua):
+        if self.ambiente.isla:
+            print("quieres ir a la isla? (si/no)")
+            eleccion = input()
+            if eleccion == "si":
+                self.Ir_isla(random.randint(10, 15))
+                return
         for i in range(len(lista_objetos_agua) - 1, -1, -1):
             objeto = lista_objetos_agua[i]
             if objeto["distancia"] <= 5:
@@ -226,6 +232,23 @@ class Jugador():
             if eleccion == "no":
                 return
 
+
+    def Ir_isla(self, distancia):
+        isla = Isla()
+        print("te acercas a la isla")
+        paso = 1
+        while paso < distancia:
+            self.Tiburon()
+            print("paso", paso, "de", distancia)
+            eleccion = input("quieres seguir? (si/no)")
+            if eleccion == "no":
+                print("vuelves a la balsa")
+                return
+            paso += 1
+        print("llegas a la isla")
+        isla.Llegar_isla(self)
+        print("vuelves a la balsa")
+
     def Decisiones(self):
         lista_objetos_agua = self.ambiente.Buscar_agua() # son todos los objetos flotantes, tanto barriles como botellas y otros
         lista_objetos_balsa = self.ambiente.Buscar_balsa() # son todos los objetos en la balsa, tanto palos como piedras y otros
@@ -263,6 +286,34 @@ class Jugador():
         else:
             print("no hay peces cerca")
 
+class Isla():
+    def __init__(self):
+        self.lista_objetos_isla = []
+
+    def Llegar_isla(self, jugador):
+        print("llegas a la isla")
+        cant_barriles = random.randint(1, 5)
+        for i in range(cant_barriles):
+            self.lista_objetos_isla.append(Recursos_Unicos.Barril())
+        print("hay", cant_barriles, "barriles en la isla")
+        print("enter para revisar la isla")
+        input()
+        self.Revisar_isla(jugador)
+
+    def Revisar_isla(self, jugador):
+        for i in range(len(self.lista_objetos_isla) -1, -1, -1):
+            objeto = self.lista_objetos_isla[i]
+            print("en la isla hay un/a:", objeto.nombre)
+            print("enter para abrir el barril")
+            input()
+            objeto.Abrir(jugador)
+            if objeto.cantidad <= 0:
+                self.lista_objetos_isla.pop(i)
+        jugador.ambiente.isla = False
+        print("has terminado de revisar la isla")
+        print("enter para volver a la balsa")
+        input()
+
 class Ambiente():
     def __init__(self):
         self.objetos_agua = []
@@ -270,9 +321,14 @@ class Ambiente():
         self.prob_tiburon = 10
         self.caña_pescar = False
         self.pez = False
+        self.isla = False
     
     def Actualizar(self):
         print("el entorno se actualiza")
+        prob_isla = random.randint(1, 100)
+        if prob_isla <= 10:
+            self.isla = True
+            print("avistan una isla!!")
         cant_nuevos_objetos = random.randint(1, 5)
         for i in range(cant_nuevos_objetos):
             probabilidad = random.randint(1, 100)
@@ -323,7 +379,7 @@ class Partida():
             self.jugador.Mostrar_estado()
             self.jugador.Decisiones()
             if self.jugador.vida <= 0:
-                print("game over")
+                print("GAME OVER")
                 break
 
 partida = Partida()

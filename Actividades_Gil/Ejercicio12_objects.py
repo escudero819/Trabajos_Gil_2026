@@ -60,7 +60,7 @@ class C_Botella_agua(Objeto):
         nombre = "Botella de agua"
         cantidad = random.randint(1,3)
         cant_max = 5
-        super().__init__(nombre, False, descripcion, cantidad, cant_max)
+        super().__init__(nombre, True, descripcion, cantidad, cant_max)
 
     def Utilidad(self, jugador):
         jugador.sed += 20
