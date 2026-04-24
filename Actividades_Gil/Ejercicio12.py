@@ -2,7 +2,9 @@ from Ejercicio12_objects import Recursos_no_Usables, Recursos_Usables, Recursos_
 import random
 
 class Inventario():
-
+    """
+    CASE INVENTARIO: manejara los objetos que tenga el jugador, la interaccion con ellos y su descarte
+    """
     def __init__(self, jugador, cant_maxima):
         self.cantidad_maxima = cant_maxima
         self.inventario = []
@@ -23,7 +25,9 @@ class Inventario():
 
     def Descartar(self, indice):
         objeto = self.inventario.pop(indice)
-        return objeto
+        if not self.jugador.ambiente.Agregar_objeto_balsa(objeto):
+            print("el objeto se lo lleva el mar")
+            self.jugador.ambiente.Agregar_objeto_agua(objeto)
 
     def Usar(self, indice):
         print("usando:", indice)
@@ -127,6 +131,7 @@ class Jugador():
         elif self.sed <= 60 or self.hambre <= 60:
             self.vida -= 5
         self.ambiente.Actualizar()
+    
     def Inspeccionar_Objeto(self, objeto):
         print("nombre: ", objeto.nombre)
         print("cantidad: ", objeto.cantidad)
@@ -155,10 +160,9 @@ class Jugador():
             if self.ambiente.prob_tiburon > 50:
                 self.ambiente.prob_tiburon = 50
 
-    def Buscar_objeto_agua(self, distancia, objeto):
+    def Buscar_objeto_agua(self, distancia, objeto, indice):
         paso = 1
-        while paso <= distancia:
-            self.Timelapse()
+        while paso < distancia:
             self.Tiburon()
             print("paso", paso, "de", distancia)
             eleccion = input("quieres seguir? (si/no)")
@@ -167,19 +171,20 @@ class Jugador():
                 return
             paso += 1
         if self.Inspeccionar_Objeto(objeto):
-            self.ambiente.Remover_objeto_agua(objeto)
+            self.ambiente.Remover_objeto_agua(indice)
         print("vuelves a la balsa")
 
     def Inspeccionar_Agua(self, lista_objetos_agua):
-        for objeto in lista_objetos_agua:
-            if objeto["distancia"] <= 5: 
+        for i in range(len(lista_objetos_agua)):
+            objeto = lista_objetos_agua[i]
+            if objeto["distancia"] <= 5:
                 print("logras reconocer un objeto cercano, es un/a:", objeto["objeto"].nombre)
                 if self.ambiente.caña_pescar:
                     print("con la caña puedes alcanzarlo!")
                     print("lo quieres alcanzar? (si/no)")
                     eleccion = input()
                     if eleccion == "si":
-                        self.inventario.Guardar(objeto["objeto"])
+                        self.Inspeccionar_Objeto(objeto["objeto"])
                         return True # esto sera para avisar si hay que sacarlo del suelo
                     else:
                         return False # no se saca del suelo
@@ -188,7 +193,9 @@ class Jugador():
                     print("quieres meterte al agua a buscarlo? (si/no)")
                     eleccion = input()
                     if eleccion == "si":
-                        self.Buscar_objeto_agua(objeto["distancia"], objeto["objeto"])
+                        print(lista_objetos_agua)
+                        print(i)
+                        self.Buscar_objeto_agua(objeto["distancia"], objeto["objeto"], i)
             else:
                 print("no logras reconocer bien el objeto")
                 if objeto["distancia"] <= 10:
@@ -196,7 +203,7 @@ class Jugador():
                     print("quieres acercarte? (si/no)")
                     eleccion = input()
                     if eleccion == "si":
-                        self.Buscar_objeto_agua(objeto["distancia"], objeto["objeto"])
+                        self.Buscar_objeto_agua(objeto["distancia"], objeto["objeto"], i)
             
             print("quieres seguir viendo el agua? (si/no)")
             eleccion = input()
@@ -204,13 +211,17 @@ class Jugador():
                 return
 
     def Inspeccionar_Balsa(self, lista_objetos_balsa):
-        for objeto in lista_objetos_balsa:
+        if len(lista_objetos_balsa) == 0:
+            print("no hay objetos en la balsa")
+            return
+        for i in range(len(lista_objetos_balsa)):
+            objeto = lista_objetos_balsa[i]
             print("en la balsa hay un/a:", objeto["nombre"])
             print("quieres inspeccionarlo? (si/no)")
             eleccion = input()
             if eleccion == "si":
                 if self.Inspeccionar_Objeto(objeto):
-                    self.ambiente.Remover_objeto_balsa(objeto)
+                    self.ambiente.Remover_objeto_balsa(i)
             print("quieres seguir viendo la balsa? (si/no)")
             eleccion = input()
             if eleccion == "no":
@@ -247,6 +258,7 @@ class Ambiente():
         self.caña_pescar = False
     
     def Actualizar(self):
+        print("el entorno se actualiza")
         cant_nuevos_objetos = random.randint(1, 5)
         for i in range(cant_nuevos_objetos):
             probabilidad = random.randint(1, 100)
@@ -264,11 +276,22 @@ class Ambiente():
     def Buscar_balsa(self):
         return self.objetos_balsa
     
-    def Remover_objeto_agua(self, objeto):
-        self.objetos_agua.remove(objeto)
+    def Remover_objeto_agua(self, indice):
+        self.objetos_agua.pop(indice)
     
-    def Remover_objeto_balsa(self, objeto):
-        self.objetos_balsa.remove(objeto)
+    def Remover_objeto_balsa(self, indice):
+        self.objetos_balsa.pop(indice)
+    
+    def Agregar_objeto_balsa(self, objeto):
+        if len(self.objetos_balsa) < 5:
+            self.objetos_balsa.append(objeto)
+            return True
+        else:
+            print("la balsa esta llena, no puedes agregar mas objetos")
+            return False
+    
+    def Agregar_objeto_agua(self, objeto):
+        self.objetos_agua.append({ "objeto": objeto, "distancia": random.randint(1, 5)})
 
 class Partida():
     def __init__(self):
@@ -277,7 +300,10 @@ class Partida():
     
     def Jugar(self):
         while True:
+            print("\n")
+            print("-"*20)
             self.jugador.Timelapse()
+            self.jugador.Mostrar_estado()
             self.jugador.Decisiones()
             if self.jugador.vida <= 0:
                 print("game over")
