@@ -7,7 +7,7 @@ class Inventario():
     """
     def __init__(self, jugador, cant_maxima):
         self.cantidad_maxima = cant_maxima
-        self.inventario = []
+        self.inventario = [Recursos_Unicos.Caña_Pescar()]
         self.jugador = jugador
     
     def Guardar(self, objeto):
@@ -30,7 +30,7 @@ class Inventario():
             self.jugador.ambiente.Agregar_objeto_agua(objeto)
 
     def Usar(self, indice):
-        print("usando:", indice)
+        print("usando:", self.inventario[indice].nombre)
         objeto = self.inventario[indice]
         if objeto.usable:
             objeto.Usar(self.jugador)
@@ -122,8 +122,8 @@ class Jugador():
         # es el precio de hacer cualquier accion, es para simular el paso del tiempo
         # debido a que no hay un bucle principal que controle el tiempo y el jugador puede hacer lo que quiera 
         # ademas el programa cada vez que actualice el entorno se ejecutara este metodo
-        self.sed -= 1
-        self.hambre -= 1
+        self.sed -= 3
+        self.hambre -= 3
         if self.sed <= 0 or self.hambre <= 0:
             self.vida = 0
         elif self.sed <= 30 or self.hambre <= 30:
@@ -175,7 +175,7 @@ class Jugador():
         print("vuelves a la balsa")
 
     def Inspeccionar_Agua(self, lista_objetos_agua):
-        for i in range(len(lista_objetos_agua)):
+        for i in range(len(lista_objetos_agua) - 1, -1, -1):
             objeto = lista_objetos_agua[i]
             if objeto["distancia"] <= 5:
                 print("logras reconocer un objeto cercano, es un/a:", objeto["objeto"].nombre)
@@ -207,6 +207,7 @@ class Jugador():
             eleccion = input()
             if eleccion == "no":
                 return
+        print("has terminado de ver el agua")
 
     def Inspeccionar_Balsa(self, lista_objetos_balsa):
         if len(lista_objetos_balsa) == 0:
@@ -247,6 +248,20 @@ class Jugador():
             print("opcion no valida")
             self.Decisiones()
 
+    def Pescar(self):
+        if self.ambiente.pez:
+            print("hay un pez en el agua, quieres tratar de sacarlo? (si/no)")
+            eleccion = input()
+            if eleccion == "si":
+                prob_sacar_pez = random.randint(1, 100)
+                if prob_sacar_pez <= 50:
+                    self.inventario.Guardar(Recursos_Unicos.Pez())
+                    self.ambiente.pez = False
+                    print("sacaste el pez!!")
+                else:
+                    print("no lograste sacar el pez")
+        else:
+            print("no hay peces cerca")
 
 class Ambiente():
     def __init__(self):
@@ -254,6 +269,7 @@ class Ambiente():
         self.objetos_balsa = []
         self.prob_tiburon = 10
         self.caña_pescar = False
+        self.pez = False
     
     def Actualizar(self):
         print("el entorno se actualiza")
@@ -267,7 +283,10 @@ class Ambiente():
             elif probabilidad <= 100:
                 objeto_nuevo = Recursos_no_Usables.Piedra()
             self.objetos_agua.append({ "objeto": objeto_nuevo, "distancia": random.randint(1, 10)})
-        
+        prob_pez = random.randint(1, 100)
+        if prob_pez <= 30:
+            self.pez = True
+    
     def Buscar_agua(self):
         return self.objetos_agua
     

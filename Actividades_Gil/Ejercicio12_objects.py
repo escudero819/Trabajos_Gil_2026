@@ -19,9 +19,9 @@ class Objeto():
     def Utilidad(self):
         pass
 
-    def Usar(self):
+    def Usar(self, jugador):
         if self.usable:
-            self.Utilidad()
+            self.Utilidad(jugador)
         else:
             print(f"{self.nombre} no se puede usar directamente")
 
@@ -64,6 +64,8 @@ class C_Botella_agua(Objeto):
 
     def Utilidad(self, jugador):
         jugador.sed += 20
+        if jugador.sed > 100:
+            jugador.sed = 100
         self.cantidad -= 1
 
 class C_Barra_Cereal(Objeto):
@@ -76,6 +78,8 @@ class C_Barra_Cereal(Objeto):
 
     def Utilidad(self, jugador):
         jugador.hambre += 20
+        if jugador.hambre > 100:
+            jugador.hambre = 100
         self.cantidad -= 1
 
 class C_Kit_Primeros_Auxilios(Objeto):
@@ -88,6 +92,8 @@ class C_Kit_Primeros_Auxilios(Objeto):
 
     def Utilidad(self, jugador):
         jugador.vida += 20
+        if jugador.vida > 100:
+            jugador.vida = 100
         self.cantidad -= 1
 
 
@@ -110,10 +116,21 @@ class C_Caña_Pescar(Objeto):
         super().__init__(nombre, True, descripcion, cantidad, cant_max)
 
     def Utilidad(self, jugador):
-        jugador.pescar()
+        jugador.Pescar()
+
+class C_Pez(Objeto):
+    def __init__(self):
+        descripcion = "un pez, puede ser comido"
+        nombre = "Pez"
+        cantidad = 1
+        cant_max = 1
+        super().__init__(nombre, True, descripcion, cantidad, cant_max)
+
+    def Utilidad(self, jugador):
+        jugador.hambre += 20
+        if jugador.hambre > 100:
+            jugador.hambre = 100
         self.cantidad -= 1
-
-
 
 class C_Barril(Objeto):
     def __init__(self):
@@ -126,11 +143,11 @@ class C_Barril(Objeto):
         probabilidad = random.randint(1, 100)
         if probabilidad <= 15:
             self.objetos.append(C_Caña_Pescar())
-        elif probabilidad <= 30:
+        elif probabilidad <= 40:
             self.objetos.append(Recursos_Usables.Barra_Cereal())
-        elif probabilidad <= 45:
+        elif probabilidad <= 65:
             self.objetos.append(Recursos_Usables.Botella_agua())
-        elif probabilidad <= 60:
+        elif probabilidad <= 90:
             self.objetos.append(Recursos_Usables.Kit_Primeros_Auxilios())
         else:
             probabilidad = random.randint(1, 100)
@@ -156,3 +173,6 @@ class Recursos_Unicos():
     
     def Caña_Pescar():
         return C_Caña_Pescar()
+    
+    def Pez():
+        return C_Pez()
