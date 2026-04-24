@@ -193,8 +193,6 @@ class Jugador():
                     print("quieres meterte al agua a buscarlo? (si/no)")
                     eleccion = input()
                     if eleccion == "si":
-                        print(lista_objetos_agua)
-                        print(i)
                         self.Buscar_objeto_agua(objeto["distancia"], objeto["objeto"], i)
             else:
                 print("no logras reconocer bien el objeto")
